@@ -29,7 +29,7 @@ services:
       - "5432"
     networks:
       - djangonetwork
-  
+
   redis:
     image: redis:latest
     expose:
@@ -39,7 +39,7 @@ services:
     networks:
       - djangonetwork
     command: [ "redis-server", "/redis.conf" ]
-  
+
   celery:
     restart: always
     build:
@@ -55,7 +55,7 @@ services:
       - database
       - redis
       - django
-  
+
   django:
     build: ./backend/
     restart: always
@@ -78,13 +78,11 @@ services:
     depends_on:
       - database
       - redis
-  
 
 networks:
   djangonetwork:
       driver: bridge
 
-    
 volumes:
   uwsgi_data:
   web_static:
