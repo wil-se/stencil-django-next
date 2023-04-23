@@ -8,10 +8,10 @@ services:
     volumes:
       - uwsgi_data:/tmp/uwsgi/
       - web_static:/var/www/backend/assets/:ro
-    depends_on: 
-      - django
     ports:
       - "8000:80"
+    depends_on: 
+      - django
 
   database:
     restart: always
@@ -32,8 +32,8 @@ services:
   
   redis:
     image: redis:latest
-    ports:
-        - 6379:6379
+    expose:
+      - "6379"
     volumes:
         - ./config/redis.conf:/redis.conf
     networks:
