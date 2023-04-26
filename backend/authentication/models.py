@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 import uuid
 
 
@@ -35,8 +37,8 @@ class UserManager(BaseUserManager):
 
 
 class UserData(AbstractUser):
+    role = models.CharField(choices=ROLES, default=ROLES[0], max_length=32)
     username = models.CharField(max_length=36, default=uuid.uuid4, unique=True)
-    # UPDATE LEN
     address = models.CharField(max_length=128, default=uuid.uuid4, unique=True)
     name = models.CharField(max_length=100)
     email = models.EmailField(max_length=100, unique=True)
@@ -46,20 +48,30 @@ class UserData(AbstractUser):
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     nonce_expired = models.BooleanField(default=True)
-
+    public_seed = models.CharField(max_length=36, default=uuid.uuid4)
+    private_seed = models.CharField(max_length=36, default=uuid.uuid4)
+    
+    
     objects = UserManager()
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['name']
 
     def __str__(self):
-        return f'{self.email} {self.first_name} {self.last_name}'
+        return f'{self.email} {self.address} {self.first_name} {self.last_name}'
 
 
 class NonceSignRequest(models.Model):
-    address = models.CharField(max_length=128)
+    address = models.CharField(max_length=128, blank=False)
     nonce = models.CharField(max_length=128, default=uuid.uuid4, unique=True)
     user = models.ForeignKey('authentication.UserData', null=True, blank=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        unique_together = ('address', 'nonce')
 
     def save(self, *args, **kwargs):
         super(NonceSignRequest, self).save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return f'{self.address} {self.nonce} {self.user}'

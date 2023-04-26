@@ -20,11 +20,8 @@ services:
       test: ["CMD", "pg_isready", "-U", "postgres"]
     volumes:
       - database:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_HOST_AUTH_METHOD=trust
+    env_file:
+      - ./.env.dev
     expose:
       - "5432"
     networks:
@@ -45,8 +42,6 @@ services:
     build:
       context: ./backend/
     command: celery -A backend worker -l INFO
-    volumes:
-      - app:/home/backend
     env_file:
       - ./.env.dev
     networks:
@@ -60,24 +55,22 @@ services:
     build: ./backend/
     restart: always
     command: >
-      sh -c "python manage.py makemigrations
+      sh -c "python manage.py makemigrations authentication
       && python manage.py migrate
       && python manage.py collectstatic --noinput 
+      && python manage.py init_chains
       && uwsgi --ini uwsgi.ini"
     volumes:
       - uwsgi_data:/tmp/uwsgi/
       - web_static:/home/backend/static
-      - app:/home/backend
-    environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_HOST=database
+    env_file:
+      - ./.env.dev
     networks:
       - djangonetwork
     depends_on:
       - database
       - redis
+
 
 networks:
   djangonetwork:

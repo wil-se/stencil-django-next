@@ -17,12 +17,14 @@ ENV CELERY_BROKER_URL redis://redis:6379/0
 ENV CELERY_RESULT_BACKEND redis://redis:6379/0
 
 # install dependencies
-RUN apk add python3-dev build-base linux-headers pcre-dev
-RUN apk add bash
+RUN apk add --no-cache python3-dev build-base linux-headers pcre-dev bash
 RUN pip install --upgrade pip
 
 # copy whole project to your docker home directory. 
-COPY . $DockerHOME  
+# COPY USES CACHE IS FASTER BUT DOES NOT UPDATE CODE
+# COPY . $DockerHOME
+ADD . $DockerHOME
+
 # run this command to install all dependencies  
 RUN pip install -r requirements.txt
 RUN python3 manage.py makemigrations
